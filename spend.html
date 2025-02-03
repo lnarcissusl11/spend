@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가계부</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background: #4CAF50;
+            color: #fff;
+            padding: 20px 10px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        /* Grid Layout */
+        #grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 20px;
+            background-color: #fff;
+            border-right: 1px solid #ddd;
+            margin: 0;
+        }
+
+        ul li {
+            margin-bottom: 10px;
+        }
+
+        ul li a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        #main2 {
+            padding: 20px;
+            background: #fff;
+        }
+
+        /* Form Styling */
+        .budget-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .budget-form label {
+            font-weight: bold;
+        }
+
+        .budget-form input, .budget-form select, .budget-form button {
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .budget-form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .budget-form button:hover {
+            background-color: #45a049;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Tags */
+        .tag {
+            color: blue;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        #selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .selected-tag {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .selected-tag:hover {
+            background-color: #e0e0e0;
+        }
+
+        #total-expense {
+            font-size: 1.2rem;
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        #popup {
+            display: none;
+            position: fixed;
+            top: 10%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            background: white;
+            border: 1px solid black;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        #popup-chart {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>가계부</h1>
+    </header>
+    <main>
+        <div id="grid">
+            <ul>
+                <li><a href="main.html">홈</a></li>
+                <li><a href="spend.html">지출 등록</a></li>
+            </ul>
+            <div id="main2">
+                <form class="budget-form">
+                    <label for="date">날짜:</label>
+                    <input type="date" id="date" required>
+
+                    <label for="category">대분류:</label>
+                    <select id="category" required>
+                        <option value="">-- 선택 --</option>
+                        <option value="housing">주거비</option>
+                        <option value="communication">통신비</option>
+                        <option value="subscription">구독료</option>
+                        <option value="food">식비</option>
+                        <option value="necessities">생필품</option>
+                        <option value="transportation">교통비</option>
+                    </select>
+
+                    <label for="subcategory">중분류:</label>
+                    <select id="subcategory" required disabled>
+                        <option value="">-- 선택 --</option>
+                    </select>
+
+                    <label for="description">내역:</label>
+                    <input type="text" id="description" placeholder="내역 입력" required>
+
+                    <label for="amount">금액:</label>
+                    <input type="number" id="amount" placeholder="금액 입력" required>
+
+                    <label for="tags">태그:</label>
+                    <select id="tags">
+                        <option value="fixed">고정비</option>
+                        <option value="variable">변동비</option>
+                        <option value="cash">현금</option>
+                        <option value="debit">체크카드</option>
+                        <option value="credit">신용카드</option>
+                    </select>
+                    <div id="selected-tags"></div>
+                    <button type="button" id="add-tag">태그 추가</button>
+
+                    <button type="button" id="add-button">추가하기</button>
+                </form>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>날짜</th>
+                            <th>대분류</th>
+                            <th>중분류</th>
+                            <th>내역</th>
+                            <th>금액</th>
+                            <th>태그</th>
+                            <th>삭제</th>
+                        </tr>
+                    </thead>
+                    <tbody id="budget-table-body">
+                        <!-- 항목이 여기에 추가됩니다 -->
+                    </tbody>
+                </table>
+
+                <div id="total-expense">총 지출: 0원</div>
+
+                <div id="popup">
+                    <button onclick="document.getElementById('popup').style.display='none';">닫기</button>
+                    <div id="popup-content"></div>
+                    <canvas id="popup-chart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            const subcategoryOptions = {
+                housing: ["월세", "전세대출이자", "원리금상환"],
+                communication: ["스마트폰", "TV", "인터넷", "TV+인터넷"],
+                subscription: [],
+                food: ["아침", "점심", "저녁", "야식", "술자리", "아점", "점저", "군것질", "식재료"],
+                necessities: ["기타"],
+                transportation: ["교통카드", "택시비"]
+            };
+
+            const categoryMap = {
+                housing: "주거비",
+                communication: "통신비",
+                subscription: "구독료",
+                food: "식비",
+                necessities: "생필품",
+                transportation: "교통비"
+            };
+
+            const tagMap = {
+                fixed: "고정비",
+                variable: "변동비",
+                cash: "현금",
+                debit: "체크카드",
+                credit: "신용카드"
+            };
+
+            const selectedTags = new Set();
+
+            const loadFromLocalStorage = () => {
+                const data = JSON.parse(localStorage.getItem('budgetData')) || [];
+                const tableBody = document.getElementById('budget-table-body');
+
+                data.forEach(entry => {
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>${entry.date}</td>
+                        <td>${entry.category}</td>
+                        <td>${entry.subcategory}</td>
+                        <td>${entry.description}</td>
+                        <td>${Number(entry.amount).toLocaleString()}</td>
+                        <td>${entry.tags.map(tag => `<span class='tag' onclick='showPopup("${tag}")'>${tag}</span>`).join(' ')}</td>
+                        <td><button class="delete-button">삭제</button></td>
+                    `;
+                    tableBody.appendChild(newRow);
+                });
+
+                updateTotalExpense();
+            };
+
+            const showPopup = (tag) => {
+                const data = JSON.parse(localStorage.getItem('budgetData')) || [];
+                const filteredData = data.filter(entry => entry.tags.includes(tag));
+                const totalExpense = data.reduce((sum, entry) => sum + parseInt(entry.amount), 0);
+                const tagExpense = filteredData.reduce((sum, entry) => sum + parseInt(entry.amount), 0);
+
+                const popupContent = document.getElementById('popup-content');
+                popupContent.innerHTML = `
+                    <h3>선택된 태그: ${tag}</h3>
+                    <p>총 지출: ${totalExpense.toLocaleString()}원</p>
+                    <p>${tag} 태그 지출: ${tagExpense.toLocaleString()}원</p>
+                    <p>비중: ${(tagExpense / totalExpense * 100).toFixed(2)}%</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>대분류</th>
+                                <th>중분류</th>
+                                <th>내역</th>
+                                <th>금액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredData.map(entry => `
+                                <tr>
+                                    <td>${entry.date}</td>
+                                    <td>${entry.category}</td>
+                                    <td>${entry.subcategory}</td>
+                                    <td>${entry.description}</td>
+                                    <td>${Number(entry.amount).toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                const ctx = document.getElementById('popup-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: [`${tag} 태그 지출`, `기타 지출`],
+                        datasets: [{
+                            data: [tagExpense, totalExpense - tagExpense],
+                            backgroundColor: ['#4CAF50', '#ccc']
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+
+                document.getElementById('popup').style.display = 'block';
+            };
+
+            const saveToLocalStorage = () => {
+                const rows = document.querySelectorAll('#budget-table-body tr');
+                const data = Array.from(rows).map(row => {
+                    const cells = row.cells;
+                    return {
+                        date: cells[0].innerText,
+                        category: cells[1].innerText,
+                        subcategory: cells[2].innerText,
+                        description: cells[3].innerText,
+                        amount: cells[4].innerText.replace(/,/g, ''),
+                        tags: Array.from(cells[5].querySelectorAll('.tag')).map(tag => tag.innerText)
+                    };
+                });
+
+                localStorage.setItem('budgetData', JSON.stringify(data));
+            };
+
+            const updateTotalExpense = () => {
+                const rows = document.querySelectorAll('#budget-table-body tr');
+                let total = 0;
+                rows.forEach(row => {
+                    const amount = parseInt(row.cells[4].innerText.replace(/,/g, ''));
+                    if (!isNaN(amount)) total += amount;
+                });
+                document.getElementById('total-expense').innerText = `총 지출: ${total.toLocaleString()}원`;
+            };
+
+            document.getElementById('category').addEventListener('change', function() {
+                const category = this.value;
+                const subcategorySelect = document.getElementById('subcategory');
+
+                subcategorySelect.innerHTML = '<option value="">-- 선택 --</option>';
+
+                if (category && subcategoryOptions[category]) {
+                    subcategoryOptions[category].forEach(option => {
+                        const newOption = document.createElement('option');
+                        newOption.value = option;
+                        newOption.textContent = option;
+                        subcategorySelect.appendChild(newOption);
+                    });
+                    subcategorySelect.disabled = false;
+                } else {
+                    subcategorySelect.disabled = true;
+                }
+            });
+
+            document.getElementById('add-tag').addEventListener('click', function() {
+                const tagSelect = document.getElementById('tags');
+                const selectedTag = tagSelect.value;
+
+                if (selectedTag && !selectedTags.has(selectedTag)) {
+                    selectedTags.add(selectedTag);
+
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'selected-tag';
+                    tagElement.textContent = `#${tagMap[selectedTag]}`;
+                    tagElement.onclick = function() {
+                        selectedTags.delete(selectedTag);
+                        tagElement.remove();
+                    };
+
+                    document.getElementById('selected-tags').appendChild(tagElement);
+                }
+            });
+
+            document.getElementById('add-button').addEventListener('click', function() {
+                const date = document.getElementById('date').value;
+                const category = document.getElementById('category').value;
+                const subcategory = document.getElementById('subcategory').value;
+                const description = document.getElementById('description').value;
+                const amount = document.getElementById('amount').value;
+                const tags = Array.from(selectedTags).map(tag => `#${tagMap[tag]}`).join(' ');
+
+                if (date && category && subcategory && description && amount) {
+                    const tableBody = document.getElementById('budget-table-body');
+                    const newRow = document.createElement('tr');
+
+                    newRow.innerHTML = `
+                        <td>${date}</td>
+                        <td>${categoryMap[category]}</td>
+                        <td>${subcategory}</td>
+                        <td>${description}</td>
+                        <td>${Number(amount).toLocaleString()}</td>
+                        <td>${tags.split(' ').map(tag => `<span class='tag' onclick='showPopup("${tag}")'>${tag}</span>`).join(' ')}</td>
+                        <td><button class="delete-button">삭제</button></td>
+                    `;
+
+                    tableBody.appendChild(newRow);
+
+                    document.querySelectorAll('.delete-button').forEach(button => {
+                        button.addEventListener('click', function() {
+                            this.parentElement.parentElement.remove();
+                            updateTotalExpense();
+                            saveToLocalStorage();
+                        });
+                    });
+
+                    updateTotalExpense();
+                    saveToLocalStorage();
+
+                    document.getElementById('date').value = '';
+                    document.getElementById('category').value = '';
+                    document.getElementById('subcategory').value = '';
+                    document.getElementById('subcategory').disabled = true;
+                    document.getElementById('description').value = '';
+                    document.getElementById('amount').value = '';
+                    document.getElementById('selected-tags').innerHTML = '';
+                    selectedTags.clear();
+                } else {
+                    alert('모든 항목을 입력해주세요!');
+                }
+            });
+
+            window.addEventListener('load', loadFromLocalStorage);
+        </script>
+    </main>
+</body>
+</html>
